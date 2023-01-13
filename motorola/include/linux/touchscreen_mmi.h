@@ -313,7 +313,10 @@ enum ts_mmi_panel_event {
 };
 
 enum ts_mmi_work {
+	TS_MMI_DO_POWER_ON,
 	TS_MMI_DO_RESUME,
+	TS_MMI_DO_SLEEP,
+	TS_MMI_DO_POWER_OFF,
 	TS_MMI_DO_PS,
 	TS_MMI_DO_REFRESH_RATE,
 	TS_MMI_DO_FPS,
@@ -503,7 +506,6 @@ struct ts_mmi_dev {
 	enum ts_mmi_pm_mode	pm_mode;
 
 	struct delayed_work	work;
-	struct delayed_work	ps_work;
 	struct kfifo		cmd_pipe;
 
 	struct notifier_block	freq_nb;
@@ -512,8 +514,6 @@ struct ts_mmi_dev {
 	struct work_struct	ps_notify_work;
 	struct notifier_block	ps_notif;
 	bool			ps_is_present;
-	bool			present;
-	struct			power_supply *psy;
 
 	struct notifier_block	fps_notif;
 	bool is_fps_registered;	/* FPS notif registration might be delayed */
