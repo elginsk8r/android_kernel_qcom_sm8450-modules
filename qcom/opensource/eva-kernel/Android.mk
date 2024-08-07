@@ -1,3 +1,16 @@
+ENABLE_EVA_KERNEL := true
+ifeq ($(TARGET_KERNEL_DLKM_DISABLE), true)
+ifeq ($(TARGET_KERNEL_DLKM_EVA_OVERRIDE), true)
+ENABLE_EVA_KERNEL := true
+endif
+endif
+
+ifeq ($(TARGET_BOARD_PLATFORM), neo61)
+	LOCAL_MODULE_DDK_BUILD := true
+	LOCAL_MODULE_KO_DIRS := msm/msm-eva.ko
+endif
+
+ifeq ($(ENABLE_EVA_KERNEL), true)
 ifneq ($(TARGET_BOARD_PLATFORM), qssi)
 ifeq ($(call is-board-platform-in-list, $(TARGET_BOARD_PLATFORM)),true)
 
@@ -32,3 +45,4 @@ include $(DLKM_DIR)/Build_external_kernelmodule.mk
 
 endif # End of check for board platform
 endif # End of check for target product
+endif # End of enable eva kernel check

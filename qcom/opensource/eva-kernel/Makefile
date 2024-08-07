@@ -1,10 +1,12 @@
-KBUILD_OPTIONS+= EVA_ROOT=$(KERNEL_SRC)/$(M)
+M ?= $(shell pwd)
+KBUILD_OPTIONS+= EVA_ROOT=$(shell cd $(KERNEL_SRC); readlink -e $(M))
 
-all:
+all: modules
+modules:
 	$(MAKE) -C $(KERNEL_SRC) M=$(M) modules $(KBUILD_OPTIONS)
 
 modules_install:
-	$(MAKE) M=$(M) -C $(KERNEL_SRC) modules_install
+	$(MAKE) INSTALL_MOD_STRIP=1 -C $(KERNEL_SRC) M=$(M) modules_install
 
 %:
 	$(MAKE) -C $(KERNEL_SRC) M=$(M) $@ $(KBUILD_OPTIONS)
