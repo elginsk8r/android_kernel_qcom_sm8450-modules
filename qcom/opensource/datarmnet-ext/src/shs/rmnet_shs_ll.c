@@ -209,8 +209,16 @@ int ipv6_packet_match(struct sk_buff *skb, struct ipv6hdr *skb_ip6h, struct rmne
 	u8 protocol;
 	__be16 frag_off;
 
-	saddmatch = !info->src_addr_valid || ipv6_addr_equal(&skb_ip6h->saddr,  &info->src_ip_addr.v6_saddr);
-	daddmatch = !info->dest_addr_valid || ipv6_addr_equal(&skb_ip6h->daddr,  &info->dest_ip_addr.v6_daddr);
+	saddmatch = !info->src_addr_valid;
+	if (info->src_addr_valid)
+		saddmatch = !ipv6_masked_addr_cmp(&skb_ip6h->saddr, &info->src_ip_addr_mask.v6_mask,
+						  &info->src_ip_addr.v6_saddr);
+
+	daddmatch = !info->dest_addr_valid;
+	if (info->dest_addr_valid)
+		daddmatch = !ipv6_masked_addr_cmp(&skb_ip6h->daddr, &info->dest_ip_addr_mask.v6_mask,
+						  &info->dest_ip_addr.v6_daddr);
+
 	protomatch = !info->proto_valid || info->proto == skb_ip6h->nexthdr;
 
 	src_port_match = !info->src_port_valid ;
@@ -229,8 +237,13 @@ int ipv6_packet_match(struct sk_buff *skb, struct ipv6hdr *skb_ip6h, struct rmne
 				src_port_match = false;
 				dest_port_match = false;
 			} else {
-				src_port_match = !info->src_port_valid || tp->source ==  (info->src_port);
-				dest_port_match = !info->dest_port_valid || tp->dest ==  (info->dest_port);
+				if (info->src_port_valid)
+					src_port_match = ntohs(info->src_port) <= ntohs(tp->source) &&
+							 ntohs(tp->source) <= ntohs(info->src_port_max);
+
+				if (info->dest_port_valid)
+					dest_port_match = ntohs(info->dest_port) <= ntohs(tp->dest) &&
+							  ntohs(tp->dest) <= ntohs(info->dest_port_max);
 			}
 		} else if (skb_ip6h->nexthdr == IPPROTO_UDP) {
 			up = rmnet_shs_header_ptr(skb, v6len, sizeof(*up), &__up);
@@ -238,8 +251,13 @@ int ipv6_packet_match(struct sk_buff *skb, struct ipv6hdr *skb_ip6h, struct rmne
 				src_port_match = false;
 				dest_port_match = false;
 			} else {
-				src_port_match = !info->src_port_valid || up->source ==  (info->src_port);
-				dest_port_match = !info->dest_port_valid ||  up->dest ==  (info->dest_port);
+				if (info->src_port_valid)
+					src_port_match = ntohs(info->src_port) <= ntohs(up->source) &&
+							 ntohs(up->source) <= ntohs(info->dest_port_max);
+
+				if (info->dest_port_valid)
+					dest_port_match = ntohs(info->dest_port) <= ntohs(up->dest) &&
+							  ntohs(up->dest) <= ntohs(info->dest_port_max);
 			}
 		}
 	}
@@ -258,11 +276,17 @@ int ipv4_packet_match(struct sk_buff *skb, struct iphdr *skb_ip4h, struct rmnet_
 	struct udphdr *up, __up;
 	u16 v4ip_len = skb_ip4h->ihl * 4;
 
-	int saddmatch = !info->src_addr_valid || skb_ip4h->saddr == info->src_ip_addr.saddr;
-	int daddmatch = !info->dest_addr_valid || skb_ip4h->daddr == (info->dest_ip_addr.daddr);
+	int saddmatch = !info->src_addr_valid;
+	int daddmatch = !info->dest_addr_valid;
 	int protomatch = !info->proto_valid || skb_ip4h->protocol == info->proto;
 	int src_port_match = !info->src_port_valid ;
 	int dest_port_match = !info->dest_port_valid;
+
+	if (info->src_addr_valid)
+		saddmatch = !((skb_ip4h->saddr ^ info->src_ip_addr.saddr) & info->src_ip_addr_mask.mask);
+
+	if (info->dest_addr_valid)
+		daddmatch = !((skb_ip4h->daddr ^ info->dest_ip_addr.daddr) & info->dest_ip_addr_mask.mask);
 
 	if (info->src_port_valid || info->dest_port_valid) {
 		if (skb_ip4h->protocol == IPPROTO_TCP) {
@@ -271,8 +295,13 @@ int ipv4_packet_match(struct sk_buff *skb, struct iphdr *skb_ip4h, struct rmnet_
 				src_port_match = false;
 				dest_port_match = false;
 			} else {
-				src_port_match = !info->src_port_valid || tp->source ==  (info->src_port);
-				dest_port_match = !info->dest_port_valid || tp->dest ==  (info->dest_port);
+				if (info->src_port_valid)
+					src_port_match = ntohs(info->src_port) <= ntohs(tp->source) &&
+							 ntohs(tp->source) <= ntohs(info->src_port_max);
+
+				if (info->dest_port_valid)
+					dest_port_match = ntohs(info->dest_port) <= ntohs(tp->dest) &&
+							  ntohs(tp->dest) <= ntohs(info->dest_port_max);
 			}
 		} else if (skb_ip4h->protocol == IPPROTO_UDP) {
 			up = rmnet_shs_header_ptr(skb, v4ip_len, sizeof(*up), &__up);
@@ -280,8 +309,13 @@ int ipv4_packet_match(struct sk_buff *skb, struct iphdr *skb_ip4h, struct rmnet_
 				src_port_match = false;
 				dest_port_match = false;
 			} else {
-				src_port_match = !info->src_port_valid || up->source ==  (info->src_port);
-				dest_port_match = !info->dest_port_valid ||  up->dest ==  (info->dest_port);
+				if (info->src_port_valid)
+					src_port_match = ntohs(info->src_port) <= ntohs(up->source) &&
+							 ntohs(up->source) <= ntohs(info->src_port_max);
+
+				if (info->dest_port_valid)
+					dest_port_match = ntohs(info->dest_port) <= ntohs(up->dest) &&
+							  ntohs(up->dest) <= ntohs(info->dest_port_max);
 			}
 		}
 	}
@@ -306,27 +340,72 @@ int rmnet_shs_is_identical_filter(struct rmnet_shs_wq_flow_node  *node, struct r
 	if (info->seq && info2->seq && (info->seq == info2->seq)) {
 		return true;
 	}
-	/* Saddr matches between filters if both are not matchign for addr and/or address match*/
-	saddmatch = (!info->src_addr_valid  && !info2->src_addr_valid) ||
-		 (info->src_addr_valid  && info2->src_addr_valid &&
-		 (info->ip_version == 4)?(info->src_ip_addr.saddr == info2->src_ip_addr.saddr) :
-		 ipv6_addr_equal(&info2->src_ip_addr.v6_saddr, &info->src_ip_addr.v6_saddr));
 
-	daddmatch = (!info->dest_addr_valid  && !info2->dest_addr_valid) ||
-		(info->dest_addr_valid  && info2->dest_addr_valid &&
-		(info->ip_version == 4)?(info->dest_ip_addr.daddr == info2->dest_ip_addr.daddr) :
-		ipv6_addr_equal(&info2->dest_ip_addr.v6_daddr, &info->dest_ip_addr.v6_daddr));
+	/* Saddr matches between filters if both are not matchign for addr and/or address match*/
+	if (!info->src_addr_valid && !info2->src_addr_valid) {
+		saddmatch = 1;
+	} else if (info->src_addr_valid && info2->src_addr_valid) {
+		if (info->ip_version == 4) {
+			__be32 s1 = info->src_ip_addr.saddr & info->src_ip_addr_mask.mask;
+			__be32 s2 = info2->src_ip_addr.saddr & info2->src_ip_addr_mask.mask;
+
+			saddmatch = s1 == s2;
+		} else {
+			struct in6_addr s1;
+			struct in6_addr s2;
+			int i;
+
+			for (i = 0; i < 4; i++) {
+				s1.s6_addr32[i] = info->src_ip_addr.v6_saddr.s6_addr32[i] &
+						  info->src_ip_addr_mask.v6_mask.s6_addr32[i];
+				s2.s6_addr32[i] = info2->src_ip_addr.v6_saddr.s6_addr32[i] &
+						  info2->src_ip_addr_mask.v6_mask.s6_addr32[i];
+			}
+
+			saddmatch = ipv6_addr_equal(&s1, &s2);
+		}
+	} else {
+		saddmatch = 0;
+	}
+
+	if (!info->dest_addr_valid && !info2->dest_addr_valid) {
+		daddmatch = 1;
+	} else if (info->dest_addr_valid && info2->dest_addr_valid) {
+		if (info->ip_version == 4) {
+			__be32 d1 = info->dest_ip_addr.daddr & info->dest_ip_addr_mask.mask;
+			__be32 d2 = info2->dest_ip_addr.daddr & info2->dest_ip_addr_mask.mask;
+
+			daddmatch = d1 == d2;
+		} else {
+			struct in6_addr d1;
+			struct in6_addr d2;
+			int i;
+
+			for (i = 0; i < 4; i++) {
+				d1.s6_addr32[i] = info->dest_ip_addr.v6_daddr.s6_addr32[i] &
+						  info->dest_ip_addr_mask.v6_mask.s6_addr32[i];
+				d2.s6_addr32[i] = info2->dest_ip_addr.v6_daddr.s6_addr32[i] &
+						  info2->dest_ip_addr_mask.v6_mask.s6_addr32[i];
+			}
+
+			daddmatch = ipv6_addr_equal(&d1, &d2);
+		}
+	} else {
+		daddmatch = 0;
+	}
 
 	protomatch = (!info->proto_valid  && !info2->proto_valid) ||
 					(info->proto_valid  && info2->proto_valid && info->proto == info2->proto);
 
 	src_port_match = (!info->src_port_valid  && !info2->src_port_valid) ||
 					(info->src_port_valid  && info2->src_port_valid &&
-					info->src_port == info2->src_port);
+					info->src_port == info2->src_port &&
+					info->src_port_max == info2->src_port_max);
 
 	dest_port_match = (!info->dest_port_valid  && !info2->dest_port_valid) ||
 					(info->dest_port_valid  && info2->dest_port_valid &&
-					info->dest_port == info2->dest_port);
+					info->dest_port == info2->dest_port &&
+					info->dest_port_max == info2->dest_port_max);
 
 	rm_err("SHS_LL: match result sadr match %u daddr match %u, proto match %u, src port %u, dest port match %u  versionmatch %u\n",
            saddmatch, daddmatch, protomatch,src_port_match, dest_port_match, versionmatch);
@@ -389,20 +468,28 @@ void rmnet_shs_remove_llflow(struct rmnet_shs_wq_flow_node  *node)
 	struct hlist_node *tmp;
 	struct rmnet_shs_wq_hstat_s *hnode = NULL;
 	unsigned long bkt;
-	int i = 0;
+	bool found = false;
 
 	spin_lock_bh(&rmnet_shs_ll_ht_splock);
 	hash_for_each_safe(rmnet_shs_ll_filter_ht, bkt, tmp, temp_node, list)
 	{
-		i++;
 		if (rmnet_shs_is_identical_filter(temp_node, node)) {
 			rm_err("SHS_LL: %s\n", "Filter already installed, Dup Filter");
 			hash_del_rcu(&temp_node->list);
 			kfree(temp_node);
+			found = true;
 			break;
 		}
 	}
 	spin_unlock_bh(&rmnet_shs_ll_ht_splock);
+
+	if (!found) {
+		/* No matching filter was found. Just free our GENL node
+		 * and return.
+		 */
+		kfree(node);
+		return;
+	}
 
 	spin_lock_bh(&rmnet_shs_hstat_tbl_lock);
 	list_for_each_entry(hnode, &rmnet_shs_wq_hstat_tbl, hstat_node_id) {
@@ -431,25 +518,28 @@ void rmnet_shs_print_llflow(struct rmnet_shs_wq_flow_node  *node)
 	pr_info("SHS_LL: info->proto %u\n", info->proto );
 	pr_info("SHS_LL: info->dest_port %u\n", info->dest_port );
 	pr_info("SHS_LL: info->src_port %u\n", info->src_port );
+	pr_info("SHS_LL: info->dest_port_max %u\n", info->dest_port_max);
+	pr_info("SHS_LL: info->src_port_max %u\n", info->src_port_max);
 	pr_info("SHS_LL: info->dest_addr_valid %u\n", info->dest_addr_valid);
 	pr_info("SHS_LL: info->src_addr_valid %u\n", info->src_addr_valid);
 	pr_info("SHS_LL: info->seq %u\n", info->seq);
 
 	if (info->ip_version == 4 && (info->dest_addr_valid) && (info->src_addr_valid )) {
-		pr_info("New flow info->dest_addr_valid %u\n", info->dest_ip_addr.daddr);
-		pr_info("New flow info->src_addr_valid %u\n",  info->src_ip_addr.saddr);
+		pr_info("New flow info->dest_addr %pI4/%pI4\n",
+			&info->dest_ip_addr.daddr,
+			&info->dest_ip_addr_mask.mask);
+		pr_info("New flow info->src_addr %pI4/%pI4\n",
+			&info->src_ip_addr.saddr,
+			&info->src_ip_addr_mask.mask);
 	}
+
 	if (info->ip_version == 6 && (info->dest_addr_valid) && (info->src_addr_valid )) {
-		pr_info("New flow info->dest_addr_valid %u %u %u %u\n",
-                node->info.dest_ip_addr.v6_daddr.in6_u.u6_addr32[3],
-                node->info.dest_ip_addr.v6_daddr.in6_u.u6_addr32[2],
-                node->info.dest_ip_addr.v6_daddr.in6_u.u6_addr32[1],
-                node->info.dest_ip_addr.v6_daddr.in6_u.u6_addr32[0]);
-		pr_info("New flow info->src_addr_valid  %u %u %u %u\n",
-                node->info.src_ip_addr.v6_saddr.in6_u.u6_addr32[3],
-                node->info.src_ip_addr.v6_saddr.in6_u.u6_addr32[2],
-                node->info.src_ip_addr.v6_saddr.in6_u.u6_addr32[1],
-                node->info.src_ip_addr.v6_saddr.in6_u.u6_addr32[0]);
+		pr_info("New flow info->dest_addr %pI6/%pI6\n",
+			&node->info.dest_ip_addr.v6_daddr,
+			&node->info.dest_ip_addr_mask.v6_mask);
+		pr_info("New flow info->src_addr %pI6/%pI6\n",
+			&node->info.src_ip_addr.v6_saddr,
+			&node->info.src_ip_addr_mask.v6_mask);
 	}
 }
 
