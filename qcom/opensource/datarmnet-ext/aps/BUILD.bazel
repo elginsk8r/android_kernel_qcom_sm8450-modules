@@ -1,5 +1,5 @@
 load(":define_aps.bzl", "define_aps")
-load("//build/kernel/kleaf:kernel.bzl", "ddk_module")
+load("//build/kernel/kleaf:kernel.bzl", "ddk_headers", "ddk_module")
 
 define_aps("pineapple", "consolidate")
 define_aps("pineapple", "perf")
@@ -12,3 +12,16 @@ define_aps("parrot", "perf")
 
 define_aps("tuna", "consolidate")
 define_aps("tuna", "perf")
+
+ddk_headers(
+    name = "include_headers",
+    hdrs = glob([
+        "include/linux/*.h",
+        "include/uapi/linux/*.h",
+    ]),
+    includes = [
+        "include",
+        "include/linux",
+        "include/uapi",
+    ],
+)

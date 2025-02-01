@@ -36,18 +36,6 @@ static char *verinfo[] = {
 module_param_array(verinfo, charp, NULL, 0444);
 MODULE_PARM_DESC(verinfo, "Version of the driver");
 
-#define APS_CMD_INIT 1
-#define APS_CMD_ADD_FLOW 2
-#define APS_CMD_DEL_FLOW 3
-#define APS_CMD_UPD_FLOW 4
-#define APS_CMD_FLOW_REMOVED 5
-#define APS_CMD_ADD_FILTER 6
-
-#define APS_FLOW_REMOVED_EXPIRED 1
-#define APS_FLOW_REMOVED_NO_LONGER_VALID 2
-#define APS_FLOW_REMOVED_RESET 3
-
-#define APS_PRIORITY_UNSPECIFIED 0
 #define APS_MAX_FLOW_CNT 255
 #define APS_MAX_PRIO 5
 
@@ -328,28 +316,53 @@ static bool aps_match_filter(struct rmnet_aps_filter_req *filter,
 
 	/* Ports */
 	if (di->l4_proto == IPPROTO_TCP || di->l4_proto == IPPROTO_UDP) {
-		if ((filter->dport && filter->dport != di->dport) ||
-		    (filter->sport && filter->sport != di->sport))
-			return false;
+		if (filter->dport) {
+			if (filter->dport > di->dport ||
+			    filter->dport_max < di->dport)
+				return false;
+		}
+
+		if (filter->sport) {
+			if (filter->sport > di->sport ||
+			    filter->sport_max < di->sport)
+				return false;
+		}
 	}
 
 	/* Address and others */
 	if (filter->ip_type == AF_INET) {
-		if (((filter->filter_masks & FILTER_MASK_DADDR) &&
-		     filter->daddr[0] != di->daddr[0]) ||
-		    ((filter->filter_masks & FILTER_MASK_SADDR) &&
-		     filter->saddr[0] != di->saddr[0]))
-			return false;
+		if (filter->filter_masks & RMNET_APS_FILTER_MASK_DADDR) {
+			if ((filter->daddr[0] ^ di->daddr[0]) &
+			    filter->daddr_mask[0])
+				return false;
+		}
+
+		if (filter->filter_masks & RMNET_APS_FILTER_MASK_SADDR) {
+			if ((filter->saddr[0] ^ di->saddr[0]) &
+			    filter->saddr_mask[0])
+				return false;
+		}
+
 		if (filter->tos && filter->tos != (di->tos & filter->tos_mask))
 			return false;
 	} else if (filter->ip_type == AF_INET6) {
-		if (((filter->filter_masks & FILTER_MASK_DADDR) &&
-		     memcmp(filter->daddr, di->daddr, 16)) ||
-		    ((filter->filter_masks & FILTER_MASK_SADDR) &&
-		     memcmp(filter->saddr, di->saddr, 16)))
-			return false;
+		if (filter->filter_masks & RMNET_APS_FILTER_MASK_DADDR) {
+			if (ipv6_masked_addr_cmp((struct in6_addr *)filter->daddr,
+						 (struct in6_addr *)filter->daddr_mask,
+						 (struct in6_addr *)di->daddr))
+				return false;
+		}
+
+		if (filter->filter_masks & RMNET_APS_FILTER_MASK_SADDR) {
+			if (ipv6_masked_addr_cmp((struct in6_addr *)filter->saddr,
+						 (struct in6_addr *)filter->saddr_mask,
+						 (struct in6_addr *)di->saddr))
+				return false;
+		}
+
 		if (filter->tos && filter->tos != (di->tos & filter->tos_mask))
 			return false;
+
 		if (filter->flow_label && filter->flow_label != di->flow_label)
 			return false;
 	} else {
@@ -477,7 +490,7 @@ static void rmnet_aps_remove_iface(int ifindex)
 			aps_log("aps: flow 0x%x down\n", flow->info.label);
 			rmnet_aps_flow_removed_ind(
 				flow->info.label,
-				APS_FLOW_REMOVED_NO_LONGER_VALID);
+				RMNET_APS_FLOW_REMOVED_NO_LONGER_VALID);
 			rmnet_aps_remove_flow(flow);
 		}
 	}
@@ -510,7 +523,7 @@ static void rmnet_aps_flow_expire(struct work_struct *work)
 			aps_log("aps: flow 0x%x expired\n", label);
 			rmnet_aps_remove_flow(flow);
 			rmnet_aps_flow_removed_ind(label,
-						   APS_FLOW_REMOVED_EXPIRED);
+						   RMNET_APS_FLOW_REMOVED_EXPIRED);
 		} else if (expires_next == now ||
 			   time_before(flow->expires, expires_next)) {
 			expires_next = flow->expires;
@@ -639,14 +652,14 @@ static int rmnet_aps_change_flow(struct list_head *dev_flow_list,
 
 	flow = rmnet_aps_find_flow(dev_flow_list, req->label);
 
-	if (req->cmd == APS_CMD_DEL_FLOW) {
+	if (req->cmd == RMNET_APS_SUBCMD_DEL_FLOW) {
 		/* delete flow */
 		if (flow)
 			rmnet_aps_remove_flow(flow);
 		return 0;
 	}
 
-	if (req->cmd == APS_CMD_ADD_FLOW && flow) {
+	if (req->cmd == RMNET_APS_SUBCMD_ADD_FLOW && flow) {
 		/* remove before add */
 		rmnet_aps_remove_flow(flow);
 		flow = NULL;
@@ -745,7 +758,7 @@ static void rmnet_aps_flow_removed_ind(u32 label, u8 reason)
 		return;
 	}
 
-	resp.cmd = APS_CMD_FLOW_REMOVED;
+	resp.cmd = RMNET_APS_SUBCMD_FLOW_REMOVED;
 	resp.cmd_data = reason;
 	resp.label = label;
 
@@ -869,7 +882,7 @@ int rmnet_aps_genl_flow_hdlr(struct sk_buff *skb_2, struct genl_info *info)
 		goto out;
 
 	switch (req.cmd) {
-	case APS_CMD_INIT:
+	case RMNET_APS_SUBCMD_INIT:
 		aps_client_genl_info = *info;
 		rmnet_aps_remove_all();
 		aps_user_cookie = (u16)req.label;
@@ -877,9 +890,9 @@ int rmnet_aps_genl_flow_hdlr(struct sk_buff *skb_2, struct genl_info *info)
 		rc = 0;
 		break;
 
-	case APS_CMD_ADD_FLOW:
-	case APS_CMD_DEL_FLOW:
-	case APS_CMD_UPD_FLOW:
+	case RMNET_APS_SUBCMD_ADD_FLOW:
+	case RMNET_APS_SUBCMD_DEL_FLOW:
+	case RMNET_APS_SUBCMD_UPD_FLOW:
 		if (req.ifindex)
 			dev = dev_get_by_index(&init_net, req.ifindex);
 		if (!dev) {
@@ -889,7 +902,7 @@ int rmnet_aps_genl_flow_hdlr(struct sk_buff *skb_2, struct genl_info *info)
 		if (IS_RMNET_DEV(dev)) {
 			aps_cb = RMNET_APS_CB(dev);
 			fl = rcu_dereference(aps_cb->flow_list);
-			if (!fl && req.cmd == APS_CMD_ADD_FLOW) {
+			if (!fl && req.cmd == RMNET_APS_SUBCMD_ADD_FLOW) {
 				fl = kzalloc(sizeof(*fl), GFP_KERNEL);
 				if (fl) {
 					INIT_LIST_HEAD(&fl->list);
@@ -938,7 +951,7 @@ static int rmnet_aps_change_filter(struct list_head *dev_flow_list,
 	}
 
 	switch (req->cmd) {
-	case APS_CMD_ADD_FILTER:
+	case RMNET_APS_SUBCMD_ADD_FILTER:
 		filter = rcu_dereference(flow->filter);
 		if (filter) {
 			aps_log("aps: filter for flow 0x%x exists\n",
@@ -957,6 +970,31 @@ static int rmnet_aps_change_filter(struct list_head *dev_flow_list,
 				filter->info.tos_mask = 0xFF;
 			filter->info.tos &= filter->info.tos_mask;
 		}
+
+		/* Masks are not required. If not present, fill them to match
+		 * all bits of the address.
+		 */
+		if (filter->info.filter_masks & RMNET_APS_FILTER_MASK_SADDR) {
+			if (!filter->info.saddr_mask[0])
+				memset(filter->info.saddr_mask, 0xFFFFFFFF,
+				       sizeof(filter->info.saddr_mask));
+		}
+
+		if (filter->info.filter_masks & RMNET_APS_FILTER_MASK_DADDR) {
+			if (!filter->info.daddr_mask[0])
+				memset(filter->info.daddr_mask, 0xFFFFFFFF,
+				       sizeof(filter->info.daddr_mask));
+		}
+
+		/* Port ranges are also not required. If not provided, use the
+		 * base port value.
+		 */
+		if (!filter->info.sport_max)
+			filter->info.sport_max = filter->info.sport;
+
+		if (!filter->info.dport_max)
+			filter->info.dport_max = filter->info.dport;
+
 		rcu_assign_pointer(flow->filter, filter);
 		break;
 
@@ -1011,7 +1049,7 @@ int rmnet_aps_genl_filter_hdlr(struct sk_buff *skb_2, struct genl_info *info)
 	}
 
 	switch (req.cmd) {
-	case APS_CMD_ADD_FILTER:
+	case RMNET_APS_SUBCMD_ADD_FILTER:
 		aps_cb = RMNET_APS_CB(dev);
 		fl = rcu_dereference(aps_cb->flow_list);
 		if (fl)
@@ -1639,7 +1677,7 @@ static void __exit rmnet_aps_exit(void)
 	rmnet_aps_remove_all();
 	mutex_unlock(&rmnet_aps_mutex);
 
-	rmnet_aps_flow_removed_ind(0, APS_FLOW_REMOVED_RESET);
+	rmnet_aps_flow_removed_ind(0, RMNET_APS_FLOW_REMOVED_RESET);
 
 	cancel_delayed_work_sync(&rmnet_aps_rate_work);
 	del_timer_sync(&rmnet_aps_timer);
