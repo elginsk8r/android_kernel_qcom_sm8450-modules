@@ -15,6 +15,8 @@ define_aps("parrot", "perf")
 define_aps("tuna", "consolidate")
 define_aps("tuna", "perf")
 
+define_aps("waipio", "perf")
+
 ddk_headers(
     name = "include_headers",
     hdrs = glob([
