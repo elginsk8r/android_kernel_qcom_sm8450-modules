@@ -1,0 +1,18 @@
+# SPDX-License-Identifier: GPL-2.0
+load(":qti_external_modules.bzl", "define_qti_targets")
+
+define_qti_targets(target = "parrot")
+
+# Sample ODM Target
+#define_qti_targets(
+#    target = "foo",
+#    base = "parrot",
+#    module_root = "//vendor/odm/sm8450-modules",
+#    module_path_map = {
+#        "camera": "//vendor/odm/custom-camera:{target}_{variant}_camera",
+#        "audio": "//vendor/odm/custom-audio:{target}_{variant}_audio",
+#    },
+#    extra_modules = [
+#        "{root}/path/to/module1:{target}_perf_module1",
+#    ],
+#)
