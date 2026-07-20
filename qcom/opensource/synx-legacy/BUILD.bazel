@@ -1,0 +1,25 @@
+package(
+    default_visibility = [
+        "//visibility:public",
+    ],
+)
+
+load("//build/kernel/kleaf:kernel.bzl", "ddk_headers")
+
+driver_header_globs = [
+    "include/uapi/media/**/*.h",
+    "msm/synx/**/*.h",
+]
+
+ddk_headers(
+    name = "synx_headers",
+    hdrs = glob(driver_header_globs),
+    includes = [
+        "include",
+        "msm/synx",
+    ],
+)
+
+load(":waipio.bzl", "define_waipio")
+
+define_waipio()
