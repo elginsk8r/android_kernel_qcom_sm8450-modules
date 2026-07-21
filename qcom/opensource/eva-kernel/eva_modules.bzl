@@ -38,6 +38,7 @@ register_eva_module(
             "//vendor/qcom/sm8450-modules/qcom/opensource/mmrm-driver:%b_mmrm_driver",
         ],
         "TARGET_DSP_ENABLE": [
+            "//vendor/qcom/sm8450-modules/qcom/opensource/dsp-legacy:fastrpc_headers",
             "//vendor/qcom/sm8450-modules/qcom/opensource/dsp-legacy:%b_frpc-adsprpc",
         ],
     },

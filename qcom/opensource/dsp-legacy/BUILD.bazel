@@ -8,6 +8,14 @@ package(
     ],
 )
 
+load("//build/kernel/kleaf:kernel.bzl", "ddk_headers")
+
+ddk_headers(
+    name = "fastrpc_headers",
+    hdrs = glob(["include/linux/*.h"]),
+    includes = ["include"],
+)
+
 load(":define_modules.bzl", "define_modules")
 
 define_modules("pineapple", "consolidate")
