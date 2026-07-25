@@ -1,7 +1,26 @@
 # SPDX-License-Identifier: GPL-2.0
 load(":qti_external_modules.bzl", "define_qti_targets")
 
-define_qti_targets(target = "parrot")
+define_qti_targets(
+    target = "parrot",
+    extra_modules = [
+        "{root}/qcom/opensource/bt-kernel:{target}_{variant}_radio-i2c-rtc6226-qca",
+        "{root}/qcom/opensource/wlan/qcacld-3.0:{target}_{variant}_qca_cld_qca6750",
+    ],
+)
+
+define_qti_targets(
+    target = "waipio",
+    module_path_map = {
+        "dsp_cdsp": "{root}/qcom/opensource/dsp-legacy:{target}_{variant}_cdsp-loader",
+        "dsp_frpc": "{root}/qcom/opensource/dsp-legacy:{target}_{variant}_frpc-adsprpc",
+    },
+    extra_modules = [
+        "{root}/qcom/opensource/synx-legacy:{target}_{variant}_modules",
+        "{root}/qcom/opensource/eva-kernel:{target}_{variant}_modules",
+        "{root}/qcom/opensource/spu-kernel:{target}_{variant}_spu-drivers",
+    ],
+)
 
 # Sample ODM Target
 #define_qti_targets(

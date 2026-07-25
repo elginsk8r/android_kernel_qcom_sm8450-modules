@@ -16,7 +16,6 @@ DEFAULT_COMMON_MODULES = {
     "audio": "{root}/qcom/opensource/audio-kernel:{target}_{variant}_modules",
     "bt_fm_slim": "{root}/qcom/opensource/bt-kernel:{target}_{variant}_bt_fm_slim",
     "btpower": "{root}/qcom/opensource/bt-kernel:{target}_{variant}_btpower",
-    "bt_radio": "{root}/qcom/opensource/bt-kernel:{target}_{variant}_radio-i2c-rtc6226-qca",
     "camera": "{root}/qcom/opensource/camera-kernel:{target}_{variant}_camera",
     "ipa_gsim": "{root}/qcom/opensource/dataipa:{target}_{variant}_gsim",
     "ipa_ipam": "{root}/qcom/opensource/dataipa:{target}_{variant}_ipam",
@@ -51,7 +50,6 @@ DEFAULT_COMMON_MODULES = {
     "cnss_prealloc": "{root}/qcom/opensource/wlan/platform:{target}_{variant}_cnss_prealloc",
     "cnss_utils": "{root}/qcom/opensource/wlan/platform:{target}_{variant}_cnss_utils",
     "wlan_fw_svc": "{root}/qcom/opensource/wlan/platform:{target}_{variant}_wlan_firmware_service",
-    "qcacld": "{root}/qcom/opensource/wlan/qcacld-3.0:{target}_{variant}_qca_cld_qca6750",
 }
 
 def get_default_uapi_headers(module_root = DEFAULT_MODULE_ROOT):
