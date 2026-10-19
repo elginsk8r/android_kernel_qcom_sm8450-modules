@@ -1333,7 +1333,9 @@ static int st21nfc_probe(struct i2c_client *client,
 	int ret;
 	struct st21nfc_device *st21nfc_dev;
 	struct device *dev = &client->dev;
+#ifndef NFC_CLK_REQ_GPIO_WAKEUP
 	unsigned int clkreq_gpio = 0;
+#endif
 	pr_info("%s: enter\n",__func__);
 #ifdef RECOVERY_SUPPORT_IN_PING
 	int t;
@@ -1444,6 +1446,7 @@ static int st21nfc_probe(struct i2c_client *client,
 	if (IS_ERR_OR_NULL(st21nfc_dev->gpiod_clkreq)) {
 		st21nfc_dev->clk_run = false;
 	} else {
+#ifndef NFC_CLK_REQ_GPIO_WAKEUP
 		/* Read clkreq GPIO number from device tree*/
 		ret = of_property_read_u32_index(client->dev.of_node, "clkreq-gpios", 1, &clkreq_gpio);
 		if (ret < 0) {
@@ -1457,6 +1460,7 @@ static int st21nfc_probe(struct i2c_client *client,
 			return ret;
 		} else
 			pr_info("%s clkreq gpio %d successfully setup for wakeup capable\n", __func__, clkreq_gpio);
+#endif
 
 		if (!device_property_read_bool(dev, "st,clk_pinctrl")) {
 			pr_debug("%s:[OPTIONAL] clk_pinctrl not set\n",
