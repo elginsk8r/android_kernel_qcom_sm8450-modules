@@ -61,6 +61,10 @@
 #define WCN_CDC_SLIM_TX_CH_MAX 2
 #define WCN_CDC_SLIM_TX_CH_MAX_FM 3
 
+#ifdef CONFIG_SND_SOC_FS181X
+extern int spkr_amp_dapm_init(struct snd_soc_card *card);
+#endif
+
 /* Number of WSAs */
 #define MONO_SPEAKER    1
 #define STEREO_SPEAKER  2
@@ -128,7 +132,7 @@ static struct wcd_mbhc_config wcd_mbhc_cfg = {
 	.key_code[5] = 0,
 	.key_code[6] = 0,
 	.key_code[7] = 0,
-	.linein_th = 5000,
+	.linein_th = 4000,
 	.moisture_en = false,
 	.mbhc_micbias = MIC_BIAS_2,
 	.anc_micbias = MIC_BIAS_2,
@@ -480,8 +484,8 @@ static void *def_wcd_mbhc_cal(void)
 	btn_high = ((void *)&btn_cfg->_v_btn_low) +
 		(sizeof(btn_cfg->_v_btn_low[0]) * btn_cfg->num_btn);
 
-	btn_high[0] = 75;
-	btn_high[1] = 150;
+	btn_high[0] = 88;  //75;
+	btn_high[1] = 138; //150;
 	btn_high[2] = 237;
 	btn_high[3] = 500;
 	btn_high[4] = 500;
@@ -1089,6 +1093,29 @@ static struct snd_soc_dai_link msm_mi2s_dai_links[] = {
 		.ignore_suspend = 1,
 		SND_SOC_DAILINK_REG(quat_mi2s_tx),
 	},
+#ifdef CONFIG_SND_SOC_AW882XX
+	{
+		.name = LPASS_BE_QUIN_MI2S_RX,
+		.stream_name = LPASS_BE_QUIN_MI2S_RX,
+		.playback_only = 1,
+		.trigger = {SND_SOC_DPCM_TRIGGER_POST,
+			SND_SOC_DPCM_TRIGGER_POST},
+		.ops = &msm_common_be_ops,
+		.ignore_suspend = 1,
+		.ignore_pmdown_time = 1,
+		SND_SOC_DAILINK_REG(quin_mi2s_rx_aw882xx),
+	},
+	{
+		.name = LPASS_BE_QUIN_MI2S_TX,
+		.stream_name = LPASS_BE_QUIN_MI2S_TX,
+		.capture_only = 1,
+		.trigger = {SND_SOC_DPCM_TRIGGER_POST,
+			SND_SOC_DPCM_TRIGGER_POST},
+		.ops = &msm_common_be_ops,
+		.ignore_suspend = 1,
+		SND_SOC_DAILINK_REG(quin_mi2s_tx_aw882xx),
+	},
+#else
 	{
 		.name = LPASS_BE_QUIN_MI2S_RX,
 		.stream_name = LPASS_BE_QUIN_MI2S_RX,
@@ -1110,6 +1137,7 @@ static struct snd_soc_dai_link msm_mi2s_dai_links[] = {
 		.ignore_suspend = 1,
 		SND_SOC_DAILINK_REG(quin_mi2s_tx),
 	},
+#endif
 	{
 		.name = LPASS_BE_SEN_MI2S_RX,
 		.stream_name = LPASS_BE_SEN_MI2S_RX,
@@ -1910,6 +1938,19 @@ static int msm_tx_codec_init(struct snd_soc_pcm_runtime *rtd)
 	return msm_common_dai_link_init(rtd);
 }
 
+#ifdef CONFIG_SND_SOC_FS181X
+static int msm_cdc_audrx_init(struct snd_soc_pcm_runtime *rtd)
+{
+	struct snd_soc_card *card = rtd->card;
+	int ret;
+
+	ret = spkr_amp_dapm_init(card);
+	if (ret)
+		dev_err(card->dev, "Failed to init spkr amp mngr:%d\n", ret);
+
+	return 0;
+}
+#endif
 
 static int msm_rx_tx_codec_init(struct snd_soc_pcm_runtime *rtd)
 {
@@ -2030,6 +2071,9 @@ static int msm_rx_tx_codec_init(struct snd_soc_pcm_runtime *rtd)
 done:
 	codec_reg_done = true;
 	msm_common_dai_link_init(rtd);
+#ifdef CONFIG_SND_SOC_FS181X
+	msm_cdc_audrx_init(rtd);
+#endif
 
 	return ret;
 }

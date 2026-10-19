@@ -979,6 +979,7 @@ static int wcd937x_codec_enable_hphl_pa(struct snd_soc_dapm_widget *w,
 			snd_soc_component_update_bits(component,
 				WCD937X_ANA_RX_SUPPLIES,
 				0x02, 0x02);
+		wcd937x->ear_hphl_pga_count++;
 		if (wcd937x->update_wcd_event)
 			wcd937x->update_wcd_event(wcd937x->handle,
 						SLV_BOLERO_EVT_RX_MUTE,
@@ -989,10 +990,13 @@ static int wcd937x_codec_enable_hphl_pa(struct snd_soc_dapm_widget *w,
 	case SND_SOC_DAPM_PRE_PMD:
 		wcd_disable_irq(&wcd937x->irq_info,
 				WCD937X_IRQ_HPHL_PDM_WD_INT);
-		if (wcd937x->update_wcd_event)
+		wcd937x->ear_hphl_pga_count--;
+		if (wcd937x->update_wcd_event && (wcd937x->ear_hphl_pga_count <= 0)) {
 			wcd937x->update_wcd_event(wcd937x->handle,
 						SLV_BOLERO_EVT_RX_MUTE,
 						(WCD_RX1 << 0x10 | 0x1));
+			wcd937x->ear_hphl_pga_count = 0;
+		}
 		blocking_notifier_call_chain(&wcd937x->mbhc->notifier,
 					     WCD_EVENT_PRE_HPHL_PA_OFF,
 					     &wcd937x->mbhc->wcd_mbhc);
@@ -1125,6 +1129,7 @@ static int wcd937x_codec_enable_ear_pa(struct snd_soc_dapm_widget *w,
 			snd_soc_component_update_bits(component,
 					WCD937X_ANA_RX_SUPPLIES,
 					0x02, 0x02);
+		wcd937x->ear_hphl_pga_count++;
 		if (wcd937x->update_wcd_event)
 			wcd937x->update_wcd_event(wcd937x->handle,
 						SLV_BOLERO_EVT_RX_MUTE,
@@ -1143,10 +1148,13 @@ static int wcd937x_codec_enable_ear_pa(struct snd_soc_dapm_widget *w,
 		else
 			wcd_disable_irq(&wcd937x->irq_info,
 					WCD937X_IRQ_HPHL_PDM_WD_INT);
-		if (wcd937x->update_wcd_event)
+		wcd937x->ear_hphl_pga_count--;
+		if (wcd937x->update_wcd_event && (wcd937x->ear_hphl_pga_count <= 0)) {
 			wcd937x->update_wcd_event(wcd937x->handle,
 						SLV_BOLERO_EVT_RX_MUTE,
 						(WCD_RX1 << 0x10 | 0x1));
+			wcd937x->ear_hphl_pga_count = 0;
+		}
 		break;
 	case SND_SOC_DAPM_POST_PMD:
 		if (!wcd937x->comp1_enable)
@@ -2010,6 +2018,55 @@ static int wcd937x_tx_ch_pwr_level_put(struct snd_kcontrol *kcontrol,
 	return 0;
 }
 
+static int wcd937x_aux_path_mode_get(struct snd_kcontrol *kcontrol,
+				struct snd_ctl_elem_value *ucontrol)
+{
+	int aux_mode;
+	struct snd_soc_component *component =
+				snd_soc_kcontrol_component(kcontrol);
+
+	if (ucontrol == NULL)
+		return -1;
+
+	aux_mode = ((snd_soc_component_read(component,
+				WCD937X_DIGITAL_CDC_PATH_MODE) & 0x40)>>6);
+
+	ucontrol->value.integer.value[0] = aux_mode;
+
+	dev_dbg(component->dev, "mohan %s: aux_mode = 0x%x\n", __func__,
+		aux_mode);
+
+	return 0;
+}
+
+static int wcd937x_aux_path_mode_put(struct snd_kcontrol *kcontrol,
+				struct snd_ctl_elem_value *ucontrol)
+{
+	int aux_mode;
+	struct snd_soc_component *component =
+				snd_soc_kcontrol_component(kcontrol);
+
+	if (ucontrol == NULL)
+		return -1;
+
+	snd_soc_component_get_drvdata(component);
+	dev_dbg(component->dev, "mohan %s: ucontrol->value.integer.value[0]  = %ld\n",
+			__func__, ucontrol->value.integer.value[0]);
+
+	aux_mode = ucontrol->value.integer.value[0];
+
+	if (aux_mode) {
+		snd_soc_component_update_bits(component,
+				WCD937X_DIGITAL_CDC_PATH_MODE,
+				0x40, 0x40);
+	} else {
+		snd_soc_component_update_bits(component,
+				WCD937X_DIGITAL_CDC_PATH_MODE,
+				0x40, 0x00);
+	}
+	return 0;
+}
+
 static int wcd937x_ear_pa_gain_get(struct snd_kcontrol *kcontrol,
 				struct snd_ctl_elem_value *ucontrol)
 {
@@ -2166,6 +2223,10 @@ static int wcd937x_codec_enable_vdd_buck(struct snd_soc_dapm_widget *w,
 	return 0;
 }
 
+static const char * const wcd937x_aux_path_mode_text[] = {
+	"HP_MODE", "NORMAL_MODE",
+};
+
 static const char * const rx_hph_mode_mux_text[] = {
 	"CLS_H_INVALID", "CLS_H_HIFI", "CLS_H_LP", "CLS_AB", "CLS_H_LOHIFI",
 	"CLS_H_ULP", "CLS_AB_HIFI",
@@ -2317,6 +2378,10 @@ static const struct soc_enum rx_hph_mode_mux_enum =
 	SOC_ENUM_SINGLE_EXT(ARRAY_SIZE(rx_hph_mode_mux_text),
 			    rx_hph_mode_mux_text);
 
+static const struct soc_enum wcd937x_aux_path_mode_enum =
+	SOC_ENUM_SINGLE_EXT(ARRAY_SIZE(wcd937x_aux_path_mode_text),
+			    wcd937x_aux_path_mode_text);
+
 static SOC_ENUM_SINGLE_EXT_DECL(wcd937x_ear_pa_gain_enum,
 				wcd937x_ear_pa_gain_text);
 
@@ -2367,6 +2432,8 @@ static const struct snd_kcontrol_new wcd937x_snd_controls[] = {
 		wcd937x_tx_ch_pwr_level_get, wcd937x_tx_ch_pwr_level_put),
 	SOC_ENUM_EXT("TX CH3 PWR", wcd937x_tx_ch_pwr_level_enum,
 		wcd937x_tx_ch_pwr_level_get, wcd937x_tx_ch_pwr_level_put),
+	SOC_ENUM_EXT("AUX PATH Mode", wcd937x_aux_path_mode_enum,
+		wcd937x_aux_path_mode_get, wcd937x_aux_path_mode_put),
 };
 
 static const struct snd_kcontrol_new adc1_switch[] = {
@@ -2989,6 +3056,8 @@ static int wcd937x_soc_codec_probe(struct snd_soc_component *component)
 	wcd937x->variant = variant;
 
 	wcd937x->adc_count = 0;
+
+	wcd937x->ear_hphl_pga_count = 0;
 
 	wcd937x->fw_data = devm_kzalloc(component->dev,
 					sizeof(*(wcd937x->fw_data)),

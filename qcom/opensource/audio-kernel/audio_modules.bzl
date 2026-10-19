@@ -464,3 +464,38 @@ audio_modules.register(
     config_option = "CONFIG_SND_SOC_WCD939X_SLAVE",
     srcs = ["wcd939x-slave.c"]
 )
+# >>>> AW882XX MODULES <<<<
+audio_modules.register(
+    name = "aw882xx_dlkm",
+    path = ASOC_CODECS_PATH + "/aw882xx",
+    config_option = "CONFIG_SND_SOC_AW882XX",
+    srcs = [
+        "aw882xx.c",
+        "aw882xx_dsp.c",
+        "aw882xx_init.c",
+        "aw882xx_spin.c",
+        "aw882xx_calib.c",
+        "aw882xx_device.c",
+        "aw882xx_monitor.c",
+        "aw882xx_bin_parse.c",
+    ],
+)
+# >>>> FS1815 MODULES <<<<
+audio_modules.register(
+    name = "fs1815_dlkm",
+    path = ASOC_CODECS_PATH + "/fs1815",
+    config_option = "CONFIG_SND_SOC_FS181X",
+    srcs = [
+        "frsm-i2ca.c",
+        "frsm-amp-drv.c",
+        "frsm-i2ca-2in1.c",
+    ],
+)
+audio_modules.register(
+    name = "fs1815_mngr_dlkm",
+    path = ASOC_CODECS_PATH + "/fs1815",
+    config_option = "CONFIG_SND_SOC_FS181X",
+    srcs = [
+        "spkr-amp-mngr.c",
+    ],
+)
