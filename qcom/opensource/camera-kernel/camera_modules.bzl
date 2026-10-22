@@ -3,6 +3,51 @@ load("//build/bazel_common_rules/dist:dist.bzl", "copy_to_dist_dir")
 load("//vendor/qcom/kernel:target_variants.bzl", "get_all_la_variants")
 load(":project_defconfig.bzl", "get_project_defconfig")
 
+# ccflags of the Motorola product configs (config/<product>.mk), selected by
+# --//vendor/qcom/kernel:mmi_product. Debug-only flags of userdebug builds are left out.
+_MONA_DEFINES = [
+    "CONFIG_MOT_CUSTOM_CTLE_PARAM=1",
+    "CONFIG_MOT_SM6475_MONA=1",
+    "CONFIG_CAM_SENSOR_PROBE_DEBUG=1",
+    "CONFIG_MOT_SENSOR_PRE_POWERUP=1",
+    "CONFIG_CAM_SENSOR_POWER_RETRY=1",
+]
+
+_PARO_DEFINES = [
+    "CONFIG_CAM_SENSOR_PROBE_DEBUG=1",
+    "CONFIG_MOT_OIS_EARLY_UPGRADE_FW=1",
+    "CONFIG_MOT_OIS_AFTER_SALES_SERVICE=1",
+]
+
+# portov.mk and mumbai.mk
+_PORTOV_DEFINES = [
+    "CONFIG_CAM_SENSOR_PROBE_DEBUG=1",
+    "CONFIG_MOT_SENSOR_PRE_POWERUP=1",
+    "CONFIG_CAM_OTP_TIMEDELAY_SOUTION=1",
+]
+
+_LAMY_DEFINES = [
+    "CONFIG_CAM_SENSOR_PROBE_DEBUG=1",
+]
+
+_PRODUCT_DEFINES = {
+    "parrot": {
+        "lamy": _LAMY_DEFINES,
+        "mona": _MONA_DEFINES,
+        "monai": _MONA_DEFINES,
+        "mumba": _PORTOV_DEFINES,
+        "paro": _PARO_DEFINES,
+        "paros": _PARO_DEFINES,
+        "portov": _PORTOV_DEFINES,
+    },
+}
+
+def _product_defines(target):
+    defines = {"//conditions:default": []}
+    for product, product_defines in _PRODUCT_DEFINES.get(target, {}).items():
+        defines["//vendor/qcom/kernel:mmi_product_{}".format(product)] = product_defines
+    return select(defines)
+
 def _define_module(target, variant):
     tv = "{}_{}".format(target, variant)
     deps = [
@@ -272,6 +317,7 @@ def _define_module(target, variant):
             },
         },
         deps = deps,
+        local_defines = _product_defines(target),
         kconfig = "Kconfig",
         defconfig = "{}_defconfig_generated".format(tv),
         kernel_build = "//vendor/qcom/kernel:{}".format(tv),
