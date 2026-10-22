@@ -64,6 +64,7 @@ def define_qti_targets(
         base = None,
         variant = "perf",
         extra_modules = None,
+        exclude_modules = None,
         target_modules = None,
         module_path_map = None,
         uapi_headers = None,
@@ -78,6 +79,10 @@ def define_qti_targets(
         target_modules = []
 
         for key, template in DEFAULT_COMMON_MODULES.items():
+            # Skip default modules the target doesn't use
+            if exclude_modules and key in exclude_modules:
+                continue
+
             # If the module key was explicitly overridden in module_path_map, use target
             if module_path_map and key in module_path_map:
                 override_template = module_path_map[key]
@@ -93,8 +98,9 @@ def define_qti_targets(
 
         # Append target-specific extra modules if defined
         if extra_modules:
+            # {base} is the target whose kernel_build the modules are built against
             target_modules.extend([
-                m.format(root = module_root, target = target, variant = variant) if "{root}" in m or "{target}" in m or "{variant}" in m else m
+                m.format(root = module_root, target = target, base = base if base else target, variant = variant) if "{root}" in m or "{target}" in m or "{base}" in m or "{variant}" in m else m
                 for m in extra_modules
             ])
 
@@ -103,6 +109,9 @@ def define_qti_targets(
 
     kernel_target = base if base else target
     kernel_build_ref = "//vendor/qcom/kernel:{}_{}".format(kernel_target, variant)
+
+    # Must match the base_kernel of the msm kernel_build (see define_msm_la)
+    base_kernel = "//common:kernel_aarch64_consolidate" if variant == "consolidate" else "//common:kernel_aarch64"
 
     kernel_module_group(
         name = "{}_external_modules".format(target),
@@ -127,25 +136,27 @@ def define_qti_targets(
         kernel_build = kernel_build_ref,
     )
 
+    kernel_uapi_headers = "{}_uapi_headers".format(kernel_build_ref)
+    ddk_uapi_headers_ref = ":{}_ddk_uapi_headers".format(target)
+
     hermetic_genrule(
         name = "{}_merged_kernel_uapi_headers".format(target),
         srcs = [
-            "//vendor/qcom/kernel:{}_{}_uapi_headers".format(target, variant),
-            ":{}_ddk_uapi_headers".format(target),
+            kernel_uapi_headers,
+            ddk_uapi_headers_ref,
         ],
         outs = [
             merged_out_tarball,
         ],
         cmd = """
-            mkdir -p out
-            tar -xzf $$(find bazel-out/ -name {target}_{variant}_uapi_headers.tar.gz -o -name kernel-uapi-headers.tar.gz -print -quit) -C out
-            tar -xzf $$(find bazel-out/ -name {ddk_out} -print -quit) -C out
-            tar -czf $(@D)/{merged_out} . -C out
+            mkdir -p $(@D)/out
+            tar -xzf $(execpath {kernel}) -C $(@D)/out
+            tar -xzf $(execpath {ddk}) -C $(@D)/out
+            tar -czf $@ -C $(@D)/out .
+            rm -rf $(@D)/out
         """.format(
-            target = target,
-            variant = variant,
-            ddk_out = ddk_out_tarball,
-            merged_out = merged_out_tarball,
+            kernel = kernel_uapi_headers,
+            ddk = ddk_uapi_headers_ref,
         ),
     )
 
@@ -168,9 +179,10 @@ def define_qti_targets(
             kernel_build_ref,
             ":{}_modules_install".format(target),
             ":{}_uapi_headers_dist_files".format(target),
-            "//vendor/qcom/kernel:kernel_aarch64",
-            "//vendor/qcom/kernel:kernel_aarch64_modules",
-            "//vendor/qcom/kernel:kernel_aarch64_images_system_dlkm_image",
+            # Mixed build: GKI artifacts of the base kernel
+            base_kernel,
+            "{}_modules".format(base_kernel),
+            "{}_images_system_dlkm_image".format(base_kernel),
         ],
         strip_prefix = strip_prefix.files_only(),
     )
