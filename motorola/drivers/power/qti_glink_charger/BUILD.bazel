@@ -1,0 +1,36 @@
+# SPDX-License-Identifier: GPL-2.0
+# Kleaf DDK translation of Kbuild, see motorola/moto_modules.bzl
+load("//vendor/qcom/sm8450-modules/motorola:moto_modules.bzl", "moto_module")
+
+moto_module(
+    name = "qti_glink_charger",
+    srcs = [
+        "qti_glink_charger_core.c",
+        "trusted_shash_lib.c",
+    ] + glob(["**/*.h"]),
+    conditional_defines = {
+        "CONFIG_WIRELESS_CPS4035B": [
+            "WIRELESS_CPS4035B",
+        ],
+        "CONFIG_WIRELESS_CPS4019": [
+            "WIRELESS_CPS4019",
+        ],
+        "CONFIG_MSB_DEV": [
+            "MSB_DEV",
+        ],
+        "CONFIG_SWITCHEDCAP_DUMP": [
+            "SWITCHEDCAP_DUMP",
+        ],
+        "CONFIG_SKIP_QTI_CHARGER_CONFIRMAION": [
+            "SKIP_QTI_CHARGER_CONFIRMAION",
+        ],
+        "CONFIG_FUELGUAGE_DUMP": [
+            "FUELGUAGE_DUMP",
+        ],
+    },
+    deps = [
+        "//vendor/qcom/sm8450-modules/motorola/drivers/power/mmi_charger:headers",
+        "//vendor/qcom/sm8450-modules/motorola/drivers/power/bm_adsp_ulog:%b_bm_adsp_ulog",
+        "//vendor/qcom/sm8450-modules/motorola/drivers/power/mmi_charger:%b_mmi_charger",
+    ],
+)
