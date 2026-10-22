@@ -1,0 +1,15 @@
+# SPDX-License-Identifier: GPL-2.0
+load("//build/kernel/kleaf:kernel.bzl", "ddk_headers")
+
+package(
+    default_visibility = [
+        "//visibility:public",
+    ],
+)
+
+# -I$(ANDROID_BUILD_TOP)/motorola/kernel/modules/include
+ddk_headers(
+    name = "public_headers",
+    hdrs = glob(["include/**/*.h"]),
+    includes = ["include"],
+)
