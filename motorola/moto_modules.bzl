@@ -99,31 +99,45 @@ def moto_module(
             visibility = ["//visibility:public"],
         )
 
-# Motorola modules built for each product: (path under drivers/, module name).
-# Matches the modules loaded by device/motorola/sm6475-common.
+# Modules loaded by device/motorola/sm6475-common: (path under drivers/, module name)
+_SM6475_COMMON_MODULES = [
+    ("input/misc/goodix_fod_mmi", "goodix_fod_mmi"),
+    ("input/misc/rbs_fod_mmi", "rbs_fod_mmi"),
+    ("input/touchscreen/goodix_berlin_mmi", "goodix_brl_mmi"),
+    ("input/touchscreen/touchscreen_mmi", "touchscreen_mmi"),
+    ("misc/hall", "hall_pen"),
+    ("misc/mmi_stow", "mmi_stow"),
+    ("misc/mmi_sys_temp", "mmi_sys_temp"),
+    ("misc/sx937x_multi", "sx937x_multi"),
+    ("misc/utag", "utags"),
+    ("mmi_annotate", "mmi_annotate"),
+    ("mmi_info", "mmi_info"),
+    ("mmi_relay", "mmi_relay"),
+    ("moto_netopt/con_dfpar", "con_dfpar"),
+    ("power/bm_adsp_ulog", "bm_adsp_ulog"),
+    ("power/mmi_charger", "mmi_charger"),
+    ("power/qpnp_adaptive_charge", "qpnp_adaptive_charge"),
+    ("power/qti_glink_charger", "qti_glink_charger"),
+    ("regulator/dio8015", "dio8015"),
+    ("sensors", "sensors_class"),
+]
+
+# Motorola modules built for each product, products follow
+# kernel/arch/arm64/configs/vendor/ext_config/moto-parrot-<product>.config.
+# Only mona has a module list of its own so far, the rest use the common one.
 _PRODUCT_MODULES = {
-    "mona": [
-        ("input/misc/goodix_fod_mmi", "goodix_fod_mmi"),
-        ("input/misc/rbs_fod_mmi", "rbs_fod_mmi"),
-        ("input/touchscreen/goodix_berlin_mmi", "goodix_brl_mmi"),
-        ("input/touchscreen/touchscreen_mmi", "touchscreen_mmi"),
-        ("misc/hall", "hall_pen"),
-        ("misc/mmi_stow", "mmi_stow"),
-        ("misc/mmi_sys_temp", "mmi_sys_temp"),
-        ("misc/sx937x_multi", "sx937x_multi"),
-        ("misc/utag", "utags"),
-        ("mmi_annotate", "mmi_annotate"),
-        ("mmi_info", "mmi_info"),
-        ("mmi_relay", "mmi_relay"),
-        ("moto_netopt/con_dfpar", "con_dfpar"),
-        ("power/bm_adsp_ulog", "bm_adsp_ulog"),
-        ("power/mmi_charger", "mmi_charger"),
-        ("power/qpnp_adaptive_charge", "qpnp_adaptive_charge"),
-        ("power/qti_glink_charger", "qti_glink_charger"),
-        ("regulator/dio8015", "dio8015"),
-        ("sensors", "sensors_class"),
-    ],
+    "lamy": _SM6475_COMMON_MODULES,
+    "mona": _SM6475_COMMON_MODULES,
+    "monai": _SM6475_COMMON_MODULES,
+    "mumba": _SM6475_COMMON_MODULES,
+    "paro": _SM6475_COMMON_MODULES,
+    "paros": _SM6475_COMMON_MODULES,
+    "portov": _SM6475_COMMON_MODULES,
 }
+
+def get_moto_products():
+    """Motorola products that have a module list."""
+    return sorted(_PRODUCT_MODULES.keys())
 
 def get_moto_product_modules(product):
     """Module label templates for define_qti_targets(extra_modules = ...)."""

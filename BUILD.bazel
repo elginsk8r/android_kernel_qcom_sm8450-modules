@@ -1,4 +1,5 @@
 # SPDX-License-Identifier: GPL-2.0
+load("//vendor/qcom/sm8450-modules/motorola:moto_modules.bzl", "get_moto_product_modules", "get_moto_products")
 load(":qti_external_modules.bzl", "define_qti_targets")
 
 define_qti_targets(
@@ -8,6 +9,31 @@ define_qti_targets(
         "{root}/qcom/opensource/wlan/qcacld-3.0:{target}_{variant}_qca_cld_qca6750",
     ],
 )
+
+# Motorola parrot products, build with --//vendor/qcom/kernel:mmi_product=<product>
+[
+    define_qti_targets(
+        target = product,
+        base = "parrot",
+        exclude_modules = [
+            "cnss2",
+            "cnss_ipc",
+            "dsp_cdsp",
+        ],
+        extra_modules = [
+            "{root}/qcom/opensource/bt-kernel:{base}_{variant}_radio-i2c-rtc6226-qca",
+            "{root}/qcom/opensource/securemsm-kernel:{base}_{variant}_hdcp_qseecom_dlkm",
+            "{root}/qcom/opensource/securemsm-kernel:{base}_{variant}_qcrypto-msm_dlkm",
+            "{root}/qcom/opensource/securemsm-kernel:{base}_{variant}_smmu_proxy_dlkm",
+            "{root}/qcom/opensource/wlan/platform:{base}_{variant}_icnss2",
+            "{root}/qcom/opensource/wlan/qcacld-3.0:{base}_{variant}_qca_cld_qca6750",
+            "{root}/nxp/opensource/driver:{base}_{variant}_nxp-nci",
+            "{root}/st/opensource/driver:{base}_{variant}_stm_nfc_i2c",
+        ] + get_moto_product_modules(product),
+        dist_prefix = "motorola",
+    )
+    for product in get_moto_products()
+]
 
 define_qti_targets(
     target = "waipio",
