@@ -1,0 +1,66 @@
+# SPDX-License-Identifier: GPL-2.0
+# Kleaf DDK translation of Kbuild, see motorola/moto_modules.bzl
+load("//vendor/qcom/sm8450-modules/motorola:moto_modules.bzl", "moto_module")
+
+moto_module(
+    name = "touchscreen_mmi",
+    srcs = [
+        "touchscreen_mmi_class.c",
+        "touchscreen_mmi_panel.c",
+        "touchscreen_mmi_notif.c",
+        "touchscreen_mmi_gesture.c",
+    ] + glob(["**/*.h"]),
+    # KBUILD_OPTIONS of the Makefile
+    make_variables = [
+        "CONFIG_DRM_PANEL_EVENT_NOTIFICATIONS",
+        "CONFIG_BOARD_USES_DOUBLE_TAP_CTRL",
+        "CONFIG_DRM_DYNAMIC_REFRESH_RATE",
+        "CONFIG_BUILD_FOR_ANDROID_V",
+    ],
+    conditional_defines = {
+        "CONFIG_PANEL_NOTIFICATIONS": [
+            "CONFIG_PANEL_NOTIFICATIONS",
+        ],
+        "CONFIG_DRM_DYNAMIC_REFRESH_RATE": [
+            "CONFIG_DRM_DYNAMIC_REFRESH_RATE",
+        ],
+        "CONFIG_TOUCHCLASS_MMI_DEBUG_INFO": [
+            "CONFIG_TOUCHCLASS_MMI_DEBUG_INFO",
+        ],
+        "CONFIG_TOUCHCLASS_MMI_GESTURE_POISON_EVENT": [
+            "TS_MMI_TOUCH_GESTURE_POISON_EVENT",
+        ],
+        "CONFIG_TOUCHCLASS_MMI_MULTIWAY_UPDATE_FW": [
+            "TS_MMI_TOUCH_MULTIWAY_UPDATE_FW",
+        ],
+        "CONFIG_DRM_PANEL_NOTIFICATIONS": [
+            "CONFIG_DRM_PANEL_NOTIFICATIONS",
+        ],
+        "CONFIG_DRM_PANEL_EVENT_NOTIFICATIONS": [
+            "CONFIG_DRM_PANEL_EVENT_NOTIFICATIONS",
+        ],
+        "CONFIG_TOUCH_PANEL_NOTIFICATIONS": [
+            "CONFIG_PANEL_NOTIFICATIONS",
+        ],
+        "CONFIG_TS_KERNEL_USE_GKI": [
+            "CONFIG_TS_KERNEL_USE_GKI",
+        ],
+        "CONFIG_BOARD_USES_DOUBLE_TAP_CTRL": [
+            "CONFIG_BOARD_USES_DOUBLE_TAP_CTRL",
+        ],
+        "CONFIG_TOUCHSCREEN_DEVICE_VIRTUAL_PATH": [
+            "CONFIG_TOUCHSCREEN_DEVICE_VIRTUAL_PATH",
+        ],
+        "CONFIG_TOUCHSCREEN_EARLY_RESET_ON_RESUME": [
+            "CONFIG_TOUCHSCREEN_EARLY_RESET_ON_RESUME",
+        ],
+        "CONFIG_TOUCHCLASS_MMI_IRQ_ON_ONCE": [
+            "CONFIG_TOUCHCLASS_MMI_IRQ_ON_ONCE",
+        ],
+    },
+    deps = [
+        "//vendor/qcom/sm8450-modules/motorola/drivers/sensors:%b_sensors_class",
+        "//vendor/qcom/sm8450-modules/motorola/drivers/mmi_relay:%b_mmi_relay",
+        "//vendor/qcom/sm8450-modules/qcom/opensource/display-drivers:%b_display_drivers",
+    ],
+)
