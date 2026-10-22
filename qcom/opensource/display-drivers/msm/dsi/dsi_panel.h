@@ -177,7 +177,6 @@ struct dsi_backlight_config {
 	u32 brightness_default_level;
 	/* current brightness value */
 	u32 brightness;
-	u32 brightness_default_level;
 	u32 bl_level;
 	u32 last_bl_level;
 	struct dsi_bl_dimming_seq *bl_off_dimming_seq;
