@@ -1,0 +1,10 @@
+# SPDX-License-Identifier: GPL-2.0
+# Kleaf DDK translation of Kbuild, see motorola/moto_modules.bzl
+load("//vendor/qcom/sm8450-modules/motorola:moto_modules.bzl", "moto_module")
+
+moto_module(
+    name = "dio8015",
+    srcs = [
+        "dio8015-regulator.c",
+    ] + glob(["**/*.h"]),
+)
