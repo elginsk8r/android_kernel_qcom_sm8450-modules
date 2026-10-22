@@ -1,0 +1,21 @@
+# SPDX-License-Identifier: GPL-2.0
+# Kleaf DDK translation of Kbuild, see motorola/moto_modules.bzl
+load("//vendor/qcom/sm8450-modules/motorola:moto_modules.bzl", "moto_module")
+
+moto_module(
+    name = "rbs_fod_mmi",
+    srcs = [
+        "etxxx_fp.c",
+    ] + glob(["**/*.h"]),
+    conditional_defines = {
+        "CONFIG_EGIS_PANEL_NOTIFICATIONS": [
+            "CONFIG_PANEL_NOTIFICATIONS",
+        ],
+        "CONFIG_MMI_RELAY": [
+            "MMI_RELAY_MODULE",
+        ],
+    },
+    deps = [
+        "//vendor/qcom/sm8450-modules/motorola/drivers/mmi_relay:%b_mmi_relay",
+    ],
+)
