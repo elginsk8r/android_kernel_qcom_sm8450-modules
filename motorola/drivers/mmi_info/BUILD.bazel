@@ -1,0 +1,17 @@
+# SPDX-License-Identifier: GPL-2.0
+# Kleaf DDK translation of Kbuild, see motorola/moto_modules.bzl
+load("//vendor/qcom/sm8450-modules/motorola:moto_modules.bzl", "moto_module")
+
+moto_module(
+    name = "mmi_info",
+    srcs = [
+        "mmi_storage_info.c",
+        "mmi_ram_info.c",
+        "mmi_unit_info.c",
+        "mmi_boot_info.c",
+        "mmi_info_main.c",
+    ] + glob(["**/*.h"]),
+    deps = [
+        "//vendor/qcom/sm8450-modules/motorola/drivers/mmi_annotate:%b_mmi_annotate",
+    ],
+)
