@@ -1,0 +1,128 @@
+# SPDX-License-Identifier: GPL-2.0
+# Kleaf DDK translation of Kbuild, see motorola/moto_modules.bzl
+load("//vendor/qcom/sm8450-modules/motorola:moto_modules.bzl", "moto_module")
+
+moto_module(
+    name = "goodix_brl_mmi",
+    srcs = [
+        "goodix_brl_i2c.c",
+        "goodix_brl_spi.c",
+        "goodix_ts_core.c",
+        "goodix_brl_hw.c",
+        "goodix_cfg_bin.c",
+        "goodix_ts_utils.c",
+        "goodix_brl_fwupdate.c",
+        "goodix_ts_inspect.c",
+        "goodix_ts_tools.c",
+        "goodix_ts_config.c",
+    ] + glob(["**/*.h"]),
+    # KBUILD_OPTIONS of the Makefile
+    make_variables = [
+        "CONFIG_TOUCHSCREEN_GOODIX_BRL_SPI",
+        "CONFIG_INPUT_TOUCHSCREEN_MMI",
+        "CONFIG_BOARD_USES_DOUBLE_TAP_CTRL",
+        "CONFIG_DRM_PANEL_EVENT_NOTIFICATIONS",
+        "CONFIG_GTP_ENABLE_PM_QOS",
+        "CONFIG_GTP_LIMIT_USE_SUPPLIER",
+        "CONFIG_GTP_FOD",
+        "CONFIG_GTP_LAST_TIME",
+        "CONFIG_INPUT_GOODIX_MMI_ENABLE_PALM",
+        "CONFIG_ENABLE_GTP_PALM_CANCEL",
+        "CONFIG_GTP_ENABLE_TOUCH_PALM_BY_ID",
+    ],
+    product_make_variables = {
+        "mona": [
+            "CONFIG_INPUT_GTP_PASSIVE_PEN_NOTIFIER",
+            "TARGET_PRODUCT_MONA",
+        ],
+    },
+    conditional_defines = {
+        "CONFIG_DRM_PANEL_EVENT_NOTIFICATIONS": [
+            "CONFIG_DRM_PANEL_EVENT_NOTIFICATIONS",
+        ],
+        "CONFIG_DRM_PANEL_NOTIFICATIONS": [
+            "CONFIG_DRM_PANEL_NOTIFICATIONS",
+        ],
+        "CONFIG_TOUCHSCREEN_GOODIX_BRL_SPI": [
+            "CONFIG_TOUCHSCREEN_GOODIX_BRL_SPI",
+        ],
+        "CONFIG_GTP_FOD": [
+            "CONFIG_GTP_FOD",
+        ],
+        "CONFIG_ENABLE_GTP_VIRTUAL_FOD": [
+            "CONFIG_ENABLE_GTP_VIRTUAL_FOD",
+        ],
+        "CONFIG_GTP_LIMIT_USE_SUPPLIER": [
+            "CONFIG_GTP_LIMIT_USE_SUPPLIER",
+        ],
+        "CONFIG_GTP_ENABLE_PM_QOS": [
+            "CONFIG_GTP_ENABLE_PM_QOS",
+        ],
+        "CONFIG_GOODIX_ESD_ENABLE": [
+            "CONFIG_GOODIX_ESD_ENABLE",
+        ],
+        "CONFIG_GTP_LAST_TIME": [
+            "CONFIG_GTP_LAST_TIME",
+        ],
+        "CONFIG_GTP_STYLUS_VSYNC": [
+            "CONFIG_GTP_STYLUS_VSYNC",
+        ],
+        "CONFIG_GTP_DDA_STYLUS": [
+            "CONFIG_GTP_DDA_STYLUS",
+        ],
+        "CONFIG_MOTO_DDA_PASSIVE_STYLUS": [
+            "CONFIG_MOTO_DDA_PASSIVESTYLUS",
+        ],
+        "CONFIG_INPUT_TOUCHSCREEN_MMI": [
+            "CONFIG_INPUT_TOUCHSCREEN_MMI",
+        ],
+        "CONFIG_BOARD_USES_DOUBLE_TAP_CTRL": [
+            "CONFIG_BOARD_USES_DOUBLE_TAP_CTRL",
+        ],
+        "CONFIG_INPUT_GOODIX_MMI_ENABLE_PALM": [
+            "GOODIX_PALM_SENSOR_EN",
+        ],
+        "CONFIG_ENABLE_GTP_PALM_CANCEL": [
+            "CONFIG_ENABLE_GTP_PALM_CANCEL",
+        ],
+        "CONFIG_GTP_ENABLE_TOUCH_PALM_BY_ID": [
+            "CONFIG_ENABLE_GTP_PALM_CANCEL_BY_ID",
+        ],
+        "CONFIG_GTP_MULTI_CONFIG": [
+            "CONFIG_GTP_MULTI_CONFIG",
+        ],
+        "CONFIG_INPUT_GTP_PASSIVE_PEN_NOTIFIER": [
+            "GTP_PEN_NOTIFIER",
+        ],
+        "CONFIG_TOUCH_HARDWARE_STATUS": [
+            "CONFIG_GTP_HARDWARE_STATUS",
+        ],
+        "TARGET_PRODUCT_MONA": [
+            "PRODUCT_MONA",
+        ],
+    },
+    conditional_srcs = {
+        "CONFIG_GTP_FOD": [
+            "goodix_ts_gesture_fod.c",
+        ],
+        "!CONFIG_GTP_FOD": [
+            "goodix_ts_gesture.c",
+        ],
+        "CONFIG_GTP_DDA_STYLUS": [
+            "goodix_ts_dda.c",
+        ],
+        "CONFIG_INPUT_TOUCHSCREEN_MMI": [
+            "goodix_ts_mmi.c",
+        ],
+    },
+    conditional_copts = {
+        "CHANGE_STACK_FRAME_SIZE": [
+            "-Wframe-larger-than=4096",
+        ],
+    },
+    deps = [
+        "//vendor/qcom/sm8450-modules/motorola/drivers/input/touchscreen/touchscreen_mmi:%b_touchscreen_mmi",
+        "//vendor/qcom/sm8450-modules/motorola/drivers/mmi_info:%b_mmi_info",
+        "//vendor/qcom/sm8450-modules/motorola/drivers/misc/hall:%b_hall_pen",
+    ],
+)
