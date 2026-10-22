@@ -14,6 +14,7 @@ def define_parrot():
         ],
         config_options = [
             "CONFIG_DRM_MSM_SDE",
+            "CONFIG_DRM_DYNAMIC_REFRESH_RATE",
             "CONFIG_SYNC_FILE",
             "CONFIG_DRM_MSM_DSI",
             "CONFIG_DRM_MSM_DP",
