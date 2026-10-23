@@ -7,8 +7,8 @@ load(
     "kernel_modules_install",
 )
 
-DEFAULT_KERNEL_ROOT = "//vendor/qcom/kernel"
-DEFAULT_MODULE_ROOT = "//vendor/qcom/sm8450-modules"
+DEFAULT_KERNEL_ROOT = "//vendor/motorola/sm6475"
+DEFAULT_MODULE_ROOT = "//vendor/motorola/sm6475-modules"
 
 DEFAULT_COMMON_MODULES = {
     "audio": "{root}/qcom/opensource/audio-kernel:{target}_{variant}_modules",

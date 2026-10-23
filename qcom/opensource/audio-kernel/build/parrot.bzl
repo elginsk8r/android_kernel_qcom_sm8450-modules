@@ -54,7 +54,7 @@ _PARROT_CONFIG_OPTIONS = [
 
 # The machine driver is built differently depending on the speaker amplifier,
 # so both flavors are defined and the Motorola product picks one through
-# --//vendor/qcom/kernel:mmi_product.
+# --//vendor/motorola/sm6475:mmi_product.
 _PARROT_AMP_MODULES = {
     "aw882xx": ["aw882xx_dlkm"],
     "fs1815": ["fs1815_dlkm", "fs1815_mngr_dlkm"],
@@ -80,7 +80,7 @@ def define_parrot():
 
     for variant in ["consolidate", "perf"]:
         amp_select = {
-            "//vendor/qcom/kernel:mmi_product_{}".format(product): ":parrot_{}_{}_modules".format(variant, amp)
+            "//vendor/motorola/sm6475:mmi_product_{}".format(product): ":parrot_{}_{}_modules".format(variant, amp)
             for product, amp in _PARROT_PRODUCT_AMPS.items()
         }
         amp_select["//conditions:default"] = ":parrot_{}_{}_modules".format(variant, _PARROT_DEFAULT_AMP)

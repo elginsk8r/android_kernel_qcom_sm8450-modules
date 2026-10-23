@@ -58,8 +58,8 @@ def define_target_variant_modules(target, variant, registry, modules, config_opt
     kernel_build = "{}_{}".format(target, variant)
 
     deps = []
-    all_module_deps = ["//vendor/qcom/kernel:all_headers"]
-    kernel_build_label = "//vendor/qcom/kernel:{}".format(kernel_build)
+    all_module_deps = ["//vendor/motorola/sm6475:all_headers"]
+    kernel_build_label = "//vendor/motorola/sm6475:{}".format(kernel_build)
 
     modules = [registry.get(module_name) for module_name in modules]
     options = _get_kernel_build_options(modules, config_options)
@@ -108,7 +108,7 @@ def define_lunch_target_variant_modules(target, variant, registry, modules, lunc
     kernel_build = "{}_{}".format(target, variant)
     print("kernel_build: "+ kernel_build)
 
-    kernel_build_label = "//vendor/qcom/kernel:{}".format(kernel_build)
+    kernel_build_label = "//vendor/motorola/sm6475:{}".format(kernel_build)
     print(kernel_build_label)
 
     if lunch_target != None:
@@ -136,7 +136,7 @@ def define_lunch_target_variant_modules(target, variant, registry, modules, lunc
 
     formatter = lambda s : s.replace("%b", kernel_build).replace("%t", target)
 
-    headers = ["//vendor/qcom/kernel:all_headers"] +  registry.hdrs + [":{}_headers".format(target)]
+    headers = ["//vendor/motorola/sm6475:all_headers"] +  registry.hdrs + [":{}_headers".format(target)]
     print(headers)
 
     all_module_rules = []

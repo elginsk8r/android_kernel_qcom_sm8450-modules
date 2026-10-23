@@ -6,9 +6,9 @@ load("//build/kernel/kleaf:kernel.bzl", "ddk_module")
 # Kconfig symbols. The variables a module is built with come from the
 # KBUILD_OPTIONS of its Makefile in the LineageOS kernel_motorola_sm6475-modules
 # tree. Variables that only some devices set are given per product and picked
-# with --//vendor/qcom/kernel:mmi_product=<product>.
+# with --//vendor/motorola/sm6475:mmi_product=<product>.
 
-MOTO_ROOT = "//vendor/qcom/sm8450-modules/motorola"
+MOTO_ROOT = "//vendor/motorola/sm6475-modules/motorola"
 
 # (target, variant) pairs to define the modules for.
 MOTO_TARGET_VARIANTS = [
@@ -37,7 +37,7 @@ def _resolve(conditions, make_variables, product_make_variables):
 
     branches = {"//conditions:default": _evaluate(conditions, make_variables)}
     for product, variables in product_make_variables.items():
-        branches["//vendor/qcom/kernel:mmi_product_{}".format(product)] = _evaluate(
+        branches["//vendor/motorola/sm6475:mmi_product_{}".format(product)] = _evaluate(
             conditions,
             make_variables + variables,
         )
@@ -78,11 +78,11 @@ def moto_module(
         headers (kernel/sched, drivers/android, drivers/base)
     """
     common_deps = [
-        "//vendor/qcom/kernel:all_headers",
+        "//vendor/motorola/sm6475:all_headers",
         MOTO_ROOT + ":public_headers",
     ]
     if kernel_internal_headers:
-        common_deps.append("//vendor/qcom/kernel:moto_kernel_internal_headers")
+        common_deps.append("//vendor/motorola/sm6475:moto_kernel_internal_headers")
 
     for target, variant in MOTO_TARGET_VARIANTS:
         tv = "{}_{}".format(target, variant)
@@ -95,7 +95,7 @@ def moto_module(
             local_defines = local_defines + _resolve(conditional_defines, make_variables, product_make_variables),
             copts = copts + _resolve(conditional_copts, make_variables, product_make_variables),
             deps = common_deps + [dep.replace("%b", tv) for dep in deps],
-            kernel_build = "//vendor/qcom/kernel:{}".format(tv),
+            kernel_build = "//vendor/motorola/sm6475:{}".format(tv),
             visibility = ["//visibility:public"],
         )
 

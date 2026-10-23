@@ -44,11 +44,11 @@ def define_modules(target, variant):
                 ],
             },
         },
-        kernel_build = "//vendor/qcom/kernel:{}".format(kernel_build_variant),
+        kernel_build = "//vendor/motorola/sm6475:{}".format(kernel_build_variant),
         deps = [
-            "//vendor/qcom/sm8450-modules/qcom/opensource/dataipa:{}_ipam".format(kernel_build_variant),
-            "//vendor/qcom/kernel:all_headers",
-            "//vendor/qcom/sm8450-modules/qcom/opensource/dataipa:include_headers",
+            "//vendor/motorola/sm6475-modules/qcom/opensource/dataipa:{}_ipam".format(kernel_build_variant),
+            "//vendor/motorola/sm6475:all_headers",
+            "//vendor/motorola/sm6475-modules/qcom/opensource/dataipa:include_headers",
         ],
     )
 
@@ -76,15 +76,15 @@ def define_modules(target, variant):
         local_defines = [
             "RMNET_TRACE_INCLUDE_PATH={}/core".format(include_base),
         ],
-        kernel_build = "//vendor/qcom/kernel:{}".format(kernel_build_variant),
+        kernel_build = "//vendor/motorola/sm6475:{}".format(kernel_build_variant),
         deps = [
             ":rmnet_core_headers",
             ":{}_rmnet_ctl".format(kernel_build_variant),
-            "//vendor/qcom/sm8450-modules/qcom/opensource/dataipa:{}_ipam".format(kernel_build_variant),
-            "//vendor/qcom/sm8450-modules/qcom/opensource/datarmnet-ext/mem:{}_rmnet_mem".format(kernel_build_variant),
-            "//vendor/qcom/kernel:all_headers",
-            "//vendor/qcom/sm8450-modules/qcom/opensource/dataipa:include_headers",
-            "//vendor/qcom/sm8450-modules/qcom/opensource/datarmnet-ext/mem:rmnet_mem_headers",
+            "//vendor/motorola/sm6475-modules/qcom/opensource/dataipa:{}_ipam".format(kernel_build_variant),
+            "//vendor/motorola/sm6475-modules/qcom/opensource/datarmnet-ext/mem:{}_rmnet_mem".format(kernel_build_variant),
+            "//vendor/motorola/sm6475:all_headers",
+            "//vendor/motorola/sm6475-modules/qcom/opensource/dataipa:include_headers",
+            "//vendor/motorola/sm6475-modules/qcom/opensource/datarmnet-ext/mem:rmnet_mem_headers",
         ],
     )
 

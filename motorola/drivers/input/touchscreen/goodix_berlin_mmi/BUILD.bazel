@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: GPL-2.0
 # Kleaf DDK translation of Kbuild, see motorola/moto_modules.bzl
-load("//vendor/qcom/sm8450-modules/motorola:moto_modules.bzl", "moto_module")
+load("//vendor/motorola/sm6475-modules/motorola:moto_modules.bzl", "moto_module")
 
 moto_module(
     name = "goodix_brl_mmi",
@@ -121,8 +121,8 @@ moto_module(
         ],
     },
     deps = [
-        "//vendor/qcom/sm8450-modules/motorola/drivers/input/touchscreen/touchscreen_mmi:%b_touchscreen_mmi",
-        "//vendor/qcom/sm8450-modules/motorola/drivers/mmi_info:%b_mmi_info",
-        "//vendor/qcom/sm8450-modules/motorola/drivers/misc/hall:%b_hall_pen",
+        "//vendor/motorola/sm6475-modules/motorola/drivers/input/touchscreen/touchscreen_mmi:%b_touchscreen_mmi",
+        "//vendor/motorola/sm6475-modules/motorola/drivers/mmi_info:%b_mmi_info",
+        "//vendor/motorola/sm6475-modules/motorola/drivers/misc/hall:%b_hall_pen",
     ],
 )

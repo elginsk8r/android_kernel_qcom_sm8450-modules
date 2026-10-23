@@ -4,12 +4,12 @@ load("//build/bazel_common_rules/dist:dist.bzl", "copy_to_dist_dir")
 def define_modules(target, variant):
     tv = "{}_{}".format(target, variant)
     copts = []
-    deps = ["//vendor/qcom/kernel:all_headers"]
+    deps = ["//vendor/motorola/sm6475:all_headers"]
 
     if target == "sun":
         copts.append("-DNFC_SECURE_PERIPHERAL_ENABLED")
-        deps += ["//vendor/qcom/sm8450-modules/qcom/opensource/securemsm-kernel:smcinvoke_kernel_headers",
-                 "//vendor/qcom/sm8450-modules/qcom/opensource/securemsm-kernel:{}_smcinvoke_dlkm".format(tv)
+        deps += ["//vendor/motorola/sm6475-modules/qcom/opensource/securemsm-kernel:smcinvoke_kernel_headers",
+                 "//vendor/motorola/sm6475-modules/qcom/opensource/securemsm-kernel:{}_smcinvoke_dlkm".format(tv)
                 ]
 
     if target != "parrot":
@@ -25,7 +25,7 @@ def define_modules(target, variant):
         includes = [".", "linux", "nfc", "include/uapi/linux/nfc"],
         copts = copts,
         deps = deps,
-        kernel_build = "//vendor/qcom/kernel:{}".format(tv),
+        kernel_build = "//vendor/motorola/sm6475:{}".format(tv),
         visibility = ["//visibility:public"]
     )
 

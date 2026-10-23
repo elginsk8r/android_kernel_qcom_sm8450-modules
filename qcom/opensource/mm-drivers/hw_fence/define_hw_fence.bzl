@@ -1,6 +1,6 @@
 load("//build/kernel/kleaf:kernel.bzl", "ddk_module", "ddk_submodule")
 load("//build/bazel_common_rules/dist:dist.bzl", "copy_to_dist_dir")
-load("//vendor/qcom/kernel:target_variants.bzl", "get_all_variants")
+load("//vendor/motorola/sm6475:target_variants.bzl", "get_all_variants")
 
 def _define_module(target, variant):
     tv = "{}_{}".format(target, variant)
@@ -23,11 +23,11 @@ def _define_module(target, variant):
             },
         },
         deps = [
-            "//vendor/qcom/kernel:all_headers",
-            "//vendor/qcom/sm8450-modules/qcom/opensource/synx-kernel:synx_headers",
-            "//vendor/qcom/sm8450-modules/qcom/opensource/mm-drivers:mm_drivers_headers",
+            "//vendor/motorola/sm6475:all_headers",
+            "//vendor/motorola/sm6475-modules/qcom/opensource/synx-kernel:synx_headers",
+            "//vendor/motorola/sm6475-modules/qcom/opensource/mm-drivers:mm_drivers_headers",
         ],
-        kernel_build = "//vendor/qcom/kernel:{}".format(tv),
+        kernel_build = "//vendor/motorola/sm6475:{}".format(tv),
     )
 
     copy_to_dist_dir(

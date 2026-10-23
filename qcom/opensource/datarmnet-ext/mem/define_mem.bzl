@@ -17,9 +17,9 @@ def define_mem(target, variant):
             "rmnet_mem_pool.c",
             "rmnet_mem_priv.h",
         ],
-        kernel_build = "//vendor/qcom/kernel:{}".format(kernel_build_variant),
+        kernel_build = "//vendor/motorola/sm6475:{}".format(kernel_build_variant),
         deps = [
-            "//vendor/qcom/kernel:all_headers",
+            "//vendor/motorola/sm6475:all_headers",
         ],
         copts = ["-Wno-misleading-indentation"],
     )

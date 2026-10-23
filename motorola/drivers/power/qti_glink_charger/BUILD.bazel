@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: GPL-2.0
 # Kleaf DDK translation of Kbuild, see motorola/moto_modules.bzl
-load("//vendor/qcom/sm8450-modules/motorola:moto_modules.bzl", "moto_module")
+load("//vendor/motorola/sm6475-modules/motorola:moto_modules.bzl", "moto_module")
 
 moto_module(
     name = "qti_glink_charger",
@@ -29,8 +29,8 @@ moto_module(
         ],
     },
     deps = [
-        "//vendor/qcom/sm8450-modules/motorola/drivers/power/mmi_charger:headers",
-        "//vendor/qcom/sm8450-modules/motorola/drivers/power/bm_adsp_ulog:%b_bm_adsp_ulog",
-        "//vendor/qcom/sm8450-modules/motorola/drivers/power/mmi_charger:%b_mmi_charger",
+        "//vendor/motorola/sm6475-modules/motorola/drivers/power/mmi_charger:headers",
+        "//vendor/motorola/sm6475-modules/motorola/drivers/power/bm_adsp_ulog:%b_bm_adsp_ulog",
+        "//vendor/motorola/sm6475-modules/motorola/drivers/power/mmi_charger:%b_mmi_charger",
     ],
 )
