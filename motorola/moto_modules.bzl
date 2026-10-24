@@ -126,9 +126,12 @@ _PRODUCT_MODULES = {
 }
 
 def get_moto_product_modules(product):
-    """Module label templates for define_qti_targets(extra_modules = ...)."""
+    """Module label templates for define_qti_dist(extra_modules = ...).
+
+    Returns an empty list when the product has no Motorola-specific modules.
+    """
     if product not in _PRODUCT_MODULES:
-        fail("No Motorola modules defined for product {}".format(product))
+        return []
     return [
         "{{root}}/motorola/drivers/{}:{{base}}_{{variant}}_{}".format(path, name)
         for path, name in _PRODUCT_MODULES[product]
