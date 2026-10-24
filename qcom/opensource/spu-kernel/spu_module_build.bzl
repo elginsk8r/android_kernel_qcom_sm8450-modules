@@ -57,11 +57,11 @@ def spu_driver_module_entry(hdrs = []):
 
 def define_target_variant_modules(target, variant, registry, modules, config_options = []):
     kernel_build = "{}_{}".format(target, variant)
-    kernel_build_label = "//msm-kernel:{}".format(kernel_build)
+    kernel_build_label = "//vendor/qcom/kernel:{}".format(kernel_build)
     modules = [registry.get(module_name) for module_name in modules]
     options = _get_kernel_build_options(modules, config_options)
     formatter = lambda strs : [s.replace("%b", kernel_build).replace("%t", target) for s in strs]
-    headers = ["//msm-kernel:all_headers"] + registry.hdrs
+    headers = ["//vendor/qcom/kernel:all_headers"] + registry.hdrs
     all_module_rules = []
 
     for module in modules:
@@ -87,7 +87,7 @@ def define_target_variant_modules(target, variant, registry, modules, config_opt
     copy_to_dist_dir(
         name = "{}_spu-drivers_dist".format(kernel_build),
         data = [":{}_spu-drivers".format(kernel_build)],
-        dist_dir = "../vendor/qcom/opensource/spu-drivers/out", ## TODO
+        dist_dir = "../vendor/qcom/sm8450-modules/qcom/opensource/spu-drivers/out", ## TODO
         flat = True,
         wipe_dist_dir = False,
         allow_duplicate_filenames = False,

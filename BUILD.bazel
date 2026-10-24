@@ -1,0 +1,29 @@
+# SPDX-License-Identifier: GPL-2.0
+
+package(
+    default_visibility = [
+        "//visibility:public",
+    ],
+)
+
+load(":target_device.bzl", "define_qti_platform")
+
+define_qti_platform(
+    target = "parrot",
+    variant = "perf",
+    extra_modules = [
+        "{root}/qcom/opensource/bt-kernel:{target}_{variant}_radio-i2c-rtc6226-qca",
+        "{root}/qcom/opensource/wlan/platform:{target}_{variant}_icnss2",
+        "{root}/qcom/opensource/wlan/qcacld-3.0:{target}_{variant}_qca_cld_qca6490",
+        "{root}/qcom/opensource/wlan/qcacld-3.0:{target}_{variant}_qca_cld_qca6750",
+    ],
+)
+
+# TODO
+#define_qti_platform(
+#    target = "waipio",
+#    variant = "perf",
+#    extra_modules = [
+#        "{root}/qcom/opensource/wlan/qcacld-3.0:{target}_{variant}_qca_cld_qca6490",
+#    ],
+#)

@@ -266,6 +266,30 @@ int rmnet_shs_genl_set_flow_ll(struct sk_buff *skb_2, struct genl_info *info)
 		}
 
 		if (nla_memcpy(&flow_info->info, na, sizeof(flow_info->info)) > 0) {
+			/* Fixup various optional elements with sane values.
+			 * Currently, this means if no ranges provided, set the
+			 * missinge values.
+			 */
+			if (flow_info->info.src_addr_valid &&
+			    !flow_info->info.src_ip_addr_mask.mask)
+				memset(&flow_info->info.src_ip_addr_mask.v6_mask,
+				       0xFFFFFFFF,
+				       sizeof(flow_info->info.src_ip_addr_mask.v6_mask));
+
+			if (flow_info->info.dest_addr_valid &&
+			    !flow_info->info.dest_ip_addr_mask.mask)
+				memset(&flow_info->info.dest_ip_addr_mask.v6_mask,
+				       0xFFFFFFFF,
+				       sizeof(flow_info->info.dest_ip_addr_mask.v6_mask));
+
+			if (flow_info->info.src_port_valid &&
+			    !flow_info->info.src_port_max)
+				flow_info->info.src_port_max = flow_info->info.src_port;
+
+			if (flow_info->info.dest_port_valid &&
+			    !flow_info->info.dest_port_max)
+				flow_info->info.dest_port_max = flow_info->info.dest_port;
+
 			if (flow_info->info.opcode == RMNET_SHS_LL_OPCODE_ADD)
 				rmnet_shs_add_llflow(flow_info);
 			else if (flow_info->info.opcode == RMNET_SHS_LL_OPCODE_DEL)
